@@ -9,5 +9,9 @@ To install:
 - Go to the Admin/Projects/../Modules
 - Enable "CSV File Importer"
 
+This plugin was created by merging the Redmine Issue Importer plugin (https://github.com/leovitch/redmine_importer) and the Bulk Time Entry Plugin (https://github.com/edavis10/redmine-bulk_time_entry_plugin), plus some minor improvements.
+
+So, I'm very thankful to their creators : Leo Hourtvitz and Eric Davis.
+
 en, fr localizations included.
 
