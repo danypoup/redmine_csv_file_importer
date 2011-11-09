@@ -1,0 +1,28 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'importer', :plugin => 'redmine_csv_file_importer' %>
+<% end %>
+
+<h2><%= l(:label_time_entry_importer) %></h2>
+<p><%= l(:label_result_notice, :handle_count => @handle_count, :success_count => (@handle_count - @failed_count)) %></p>
+
+<hr/>
+
+<% if @failed_count > 0 %>
+<%= l(:label_result_failed, @failed_count) %>
+<table class="list">
+    <thead><tr>
+    	<th>#</th>
+        <% @headers.each do |column| %>
+          <th><%= column %></th>
+        <% end %>
+	</tr></thead>
+	<tbody>
+	<% @failed_events.each do |id, event| -%>
+	<tr class="<%= cycle("odd", "even") %>">
+		<td><%= id %></td>
+	    <% event.each do |column| %><%= content_tag 'td', column[1] %><% end %>
+	</tr>
+	<% end %>
+	</tbody>
+</table>
+<% end %>

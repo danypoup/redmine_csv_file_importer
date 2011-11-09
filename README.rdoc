@@ -1,0 +1,13 @@
+= Redmine CSV File Importer
+
+This plugin can import issues or time entries from CSV files.
+The database is used for intermediate storage.
+To install:
+- Download the plugin to your vendors/plugins directory
+- Run 'rake db:migrate_plugins'
+- Restart your redmine as appropriate
+- Go to the Admin/Projects/../Modules
+- Enable "CSV File Importer"
+
+en, fr localizations included.
+
