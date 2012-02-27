@@ -1,0 +1,11 @@
+<p>
+	<%= l(:message_csv_import_issue_id) %>
+</p>
+<p>
+  <label><%= l(:label_csv_import_issue_id) %></label>
+  <%= select_tag 'settings[csv_import_issue_id]', "<option value=\"\">#{l(:option_ignore)}</option>" + options_from_collection_for_select(CustomField.find(:all, :order => 'name ASC', :conditions => ['type=?', 'IssueCustomField']), :name, :name) 
+  %>
+</p>
+
+
+
