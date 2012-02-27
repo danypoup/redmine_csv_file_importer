@@ -11,6 +11,8 @@ class CsvFileImporterController < ApplicationController
     :author, :description, :category, :priority, :tracker, :status,
     :start_date, :due_date, :done_ratio, :estimated_hours]
   
+  CSV_IMPORT_ID = "CSV-IMP-ID"
+
   def index
   end
 
@@ -223,7 +225,9 @@ private
 	          query.add_filter("status_id", "*", [1])
 	          query.add_filter(unique_attr, "=", [row[unique_field]])
 
-	          issues = Issue.find :all, :conditions => query.statement, :limit => 2, :include => [ :assigned_to, :status, :tracker, :project, :priority, :category, :fixed_version ]
+	          issues = Issue.find :all, :conditions => query.statement,
+	          	:limit => 2, :include => [ :assigned_to, :status, :tracker, 
+		        :project, :priority, :category, :fixed_version ]
 	        end
 	        
 	        if issues.size > 1
@@ -327,7 +331,9 @@ private
 
     begin
       ActiveRecord::Base.transaction do
-		FasterCSV.new(csv_data, {:headers=>header, :encoding=>encoding, :quote_char=>quote_char, :col_sep=>col_sep}).each do |row|
+		FasterCSV.new(csv_data, {:headers=>header, :encoding=>encoding,
+		  :quote_char=>quote_char, :col_sep=>col_sep}).each do |row|
+
 ##        FasterCSV.parse(csv_file) do |row|
           if row[0].blank? ||
               row[2].blank? ||
@@ -342,7 +348,12 @@ private
             next
 
           end
-		  issue = Issue.find(:first, :conditions => ["id_importcsv = ?", row[0]])
+
+          custom_field = CustomField.find_by_name(CSV_IMPORT_ID)
+          custom_field_value = CustomValue.find(:first, :conditions => ["custom_field_id = ? and value = ?",  
+	          custom_field.id,row[0]])
+
+		  issue = Issue.find_by_id(custom_field_value.customized_id)
 		  
           @time = TimeEntry.new(:issue_id => issue.id,
                                :spent_on => row[2],

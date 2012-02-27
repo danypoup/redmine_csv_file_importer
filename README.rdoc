@@ -2,16 +2,79 @@
 
 This plugin can import issues or time entries from CSV files.
 The database is used for intermediate storage.
+
+== Requirements
+
+- Redmine 1.0.0
+- Fastercsv gem (1.5.3 and 1.5.4 tested)
+
+== Installation and Setup
+
 To install:
-- Download the plugin to your vendors/plugins directory
-- Run 'rake db:migrate_plugins'
-- Restart your redmine as appropriate
-- Go to the Admin/Projects/../Modules
-- Enable "CSV File Importer"
+    - Install fastercsv gem if not present by running 'gem install fastercsv'
+	- Download the plugin to your vendors/plugins directory
+	- Run 'rake db:migrate_plugins RAILS_ENV=production'
+	- Restart your redmine as appropriate
+
+To setup :
+	- Go to the Admin/Projects/../Modules
+	- Enable "CSV File Importer" 
+	- Set permissions according to your needs
+	- To import time entries, you need to define an issue customized field whose name must be "CSV-IMP-ID" and assign it to appropriates trackers. This customize field is used to bind issues with csv file.
+
+== CSV file format
+
+* Lines :
+	- One header row.
+	- One or more data rows.
+
+* Field separator : what you want !!
+
+* Field delimiter : what you want !!
+
+* Known encodings :
+	- UTF-8
+	- ISO8859-1
+	- ISO8859-15
+	- EUC
+	- SJIS
+
+=== For issues import
+
+User documentation for this part https://github.com/leovitch/redmine_importer/wiki.
+
+*Example*
+
+=== For time entries import
+
+Following fields mut be present in this order (titles are only chosen for clarity):
+- Id : a string whose value is a CSV-IMP-ID value affected to an existing issue.
+- Comment (string) : time entry comment.
+- Date (date) : date spent on (format : YYYY-MM-DD).
+- Activity (string): activity name.
+- Hours (decimal) : number of hours spent.
+- User (string) : user login.
+
+*Example*
+
+	Id;Comment;Date;Activity;Hours;User
+	15;A simple test;2012-01-20;Test;3.5;John
+	16;Specifications writing;2012-01-20;Spec;4.75;Eric
+	17;Bug #324;2012-01-21;Support;3;John
+
+== Localizations
+
+en, fr localizations included.
+
+== Licence
+
+This plugin is licensed under the GNU GPL v2. See COPYRIGHT.txt and GPL.txt for details.
+
+== Credits
 
 This plugin was created by merging the Redmine Issue Importer plugin (https://github.com/leovitch/redmine_importer) and the Bulk Time Entry Plugin (https://github.com/edavis10/redmine-bulk_time_entry_plugin), plus some minor improvements.
 
 So, I'm very thankful to their creators : Leo Hourtvitz and Eric Davis.
 
-en, fr localizations included.
+
 
