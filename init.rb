@@ -14,7 +14,9 @@ Redmine::Plugin.register :redmine_csv_file_importer do
   
   menu :project_menu, :csv_file_importer, { :controller => 'csv_file_importer', :action => 'index' }, 
 	:caption => :label_csv_file_importer, :before => :settings, :param => :project_id
-  
-  menu :top_menu, :csv_file_importer, {:controller => 'csv_file_importer', :action => 'index'}, 
-	:caption => :label_csv_file_importer, :if => Proc.new{User.current.allowed_to?(:log_time, nil, :global => true)} 
+
+  settings :partial => 'settings/csv_file_importer_settings',
+    :default => {
+      'csv_import_issue_id' => ''
+    }
 end
