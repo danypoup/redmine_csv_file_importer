@@ -12,7 +12,7 @@ class CsvFileImporterController < ApplicationController
     :start_date, :due_date, :done_ratio, :estimated_hours]
 
   TIME_ENTRY_ATTRS = [:issue_id, :comments, :activity_id, :spent_on, :hours,
-  	:user_id, :gct_tpscra]
+  	:user_id]
 
   def index
   end
@@ -232,7 +232,7 @@ private
     # 	errors << "<br>"
     # end
 
-    if !errors.nil?
+    if errors.size > 0
     	flash[:error] = errors
     	return errors
     end
@@ -374,6 +374,10 @@ private
       @failed_events = @failed_events.sort
       @headers = @failed_events[0][1].headers
     end
+
+    if errors.size == 0
+    	return []
+    end
   end
   
   def import_time_entries(csv_data, header, encoding, quote_char, col_sep, params) 
@@ -477,7 +481,6 @@ private
           # Truncate comments to 255 chars
           time.comments = row[attrs_map["comments"]].mb_chars[0..255].strip.to_s if row[attrs_map["comments"]].present?
           time.user = User.find_by_login(row[attrs_map["user_id"]].strip)
-		  time.gct_tpscra = row[attrs_map["gct_tpscra"]] || 'A'
 		  
           time.save!
 
