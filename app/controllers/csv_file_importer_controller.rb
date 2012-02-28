@@ -5,13 +5,14 @@ require 'iconv'
 class CsvFileImporterController < ApplicationController
   unloadable
   
-  before_filter :find_project
+  before_filter :find_project, :get_settings
 
   ISSUE_ATTRS = [:id, :subject, :assigned_to, :fixed_version,
     :author, :description, :category, :priority, :tracker, :status,
     :start_date, :due_date, :done_ratio, :estimated_hours]
-  
-  CSV_IMPORT_ID = "CSV-IMP-ID"
+
+  TIME_ENTRY_ATTRS = [:issue_id, :comments, :activity_id, :spent_on, :hours,
+  	:user_id, :gct_tpscra]
 
   def index
   end
@@ -23,7 +24,7 @@ class CsvFileImporterController < ApplicationController
     # save import-in-progress data
     cfiip = CsvFileImportInProgress.find_or_create_by_user_id(User.current.id)
 	cfiip.import_type = params[:import_type]
-    cfiip.quote_char = params[:wrapper]
+    cfiip.quote_char = params[:wrapper].length != 0 ? params[:wrapper] : '"'
     cfiip.col_sep = params[:splitter]
     cfiip.encoding = params[:encoding]
     cfiip.created = Time.new
@@ -63,24 +64,27 @@ class CsvFileImporterController < ApplicationController
     
 	case cfiip.import_type
 		when 'issue'
-		    # fields
-		    @attrs = Array.new
-		    ISSUE_ATTRS.each do |attr|
-		      #@attrs.push([l_has_string?("field_#{attr}".to_sym) ? l("field_#{attr}".to_sym) : attr.to_s.humanize, attr])
-		      @attrs.push([l_or_humanize(attr, :prefix=>"field_"), attr])
-		    end
-			
-		    @project.all_issue_custom_fields.each do |cfield|
-		      @attrs.push([cfield.name, cfield.name])
-		    end
-			
-		    @attrs.sort!
+			attributes = ISSUE_ATTRS
 			render_template = 'issue'
 	
 		when 'time_entry'
+			attributes = TIME_ENTRY_ATTRS
 			render_template = 'time_entry'
     end
 	
+	# fields
+    @attrs = Array.new
+    attributes.each do |attr|
+      #@attrs.push([l_has_string?("field_#{attr}".to_sym) ? l("field_#{attr}".to_sym) : attr.to_s.humanize, attr])
+      @attrs.push([l_or_humanize(attr, :prefix=>"field_"), attr])
+    end
+	
+    @project.all_issue_custom_fields.each do |cfield|
+      @attrs.push([cfield.name, cfield.name])
+    end
+	
+    @attrs.sort!
+
 	render(:template => "csv_file_importer/match_" + render_template)
   end
 
@@ -89,6 +93,7 @@ class CsvFileImporterController < ApplicationController
     @update_count = 0
     @skip_count = 0
     @failed_count = 0
+    @error_event = []
     @failed_events = Hash.new
     @affect_projects_issues = Hash.new
     
@@ -113,35 +118,44 @@ class CsvFileImporterController < ApplicationController
 			cfiip.encoding = latin[:encoding]
 	end
 	
+	result_errors = []
+
 	# Import
 	case cfiip.import_type
 		when 'issue'
-			import_issues(cfiip.csv_data, true, cfiip.encoding, cfiip.quote_char, cfiip.col_sep, params)
+			result_errors = import_issues(cfiip.csv_data, true, cfiip.encoding, cfiip.quote_char, cfiip.col_sep, params)
 			render_template = 'issue'
 	
 		when 'time_entry'
-			import_time_entries(cfiip.csv_data, true, cfiip.encoding, cfiip.quote_char, cfiip.col_sep)
+			result_errors = import_time_entries(cfiip.csv_data, true, cfiip.encoding, cfiip.quote_char, cfiip.col_sep, params)
 			render_template = 'time_entry'
     end
-	
+
     # Clean up after ourselves
     cfiip.delete
     
     # Garbage prevention: clean up cfiips older than 3 days
     CsvFileImportInProgress.delete_all(["created < ?",Time.new - 3*24*60*60])
 	
-	render(:template => "csv_file_importer/result_" + render_template)
+	logger.info "Result errors ##{result_errors.size}"
+	if result_errors.size > 0
+		logger.info "Errors : #{result_errors}"
+		logger.info "Redirect to index"
+		redirect_to(:action => 'index', :project_id => @project.id)
+	else
+		logger.info "Go to result"
+		render(:template => "csv_file_importer/result_" + render_template)
+	end
   end
 
 private
 
   def find_project
-	if params[:project_id] != nil
-		project_id = params[:project_id]
-		if project_id != -1
-			@project = Project.find(project_id)
-		end
-	end
+  	@project = Project.find(params[:project_id])
+  end
+
+  def get_settings
+    @settings = Setting.plugin_redmine_csv_file_importer
   end
   
   # Add ISO-8859-1 (or Latin1) and ISO-8859-15 (or Latin9) character encoding support by converting to UTF-8
@@ -179,18 +193,55 @@ private
     fields_map = params[:fields_map]
     unique_attr = fields_map[unique_field]
 	
+	# attrs_map is fields_map's invert
+    attrs_map = fields_map.invert
+
+	# TODO: Check that following fields are bound to an issue table field 
+	# :subject, :priority, :project, :tracker, :author, :status
+	
     # check params
+    errors = []
+
     if update_issue && unique_attr == nil
-      flash[:error] = "Unique field hasn't match an issue's field"
-      return
+      errors << "Unique field hasn't match an issue's field"
+      errors << "<br>"
     end
     
-    # attrs_map is fields_map's invert
-    attrs_map = fields_map.invert
-	
+	# if attrs_map["id"].nil?
+	# 	errors << l(:error_id_field_not_defined )
+	# 	errors << "<br>"
+	# end
+
+ #    if attrs_map["status"].nil?
+ #    	errors << l(:error_user_field_not_defined)
+ #    	errors << "<br>"
+ #    end
+
+    if attrs_map["subject"].nil?
+    	errors << l(:error_spent_on_field_not_defined)
+    	errors << "<br>"
+    end
+
+    # if attrs_map["priority"].nil? 
+    # 	errors << l(:error_activity_field_not_defined)
+    # 	errors << "<br>"
+    # end
+
+    # if attrs_map["tracker"].nil? 
+    # 	errors << l(:error_hours_field_not_defined)
+    # 	errors << "<br>"
+    # end
+
+    if !errors.nil?
+    	flash[:error] = errors
+    	return errors
+    end
+
 	ActiveRecord::Base.transaction do
       FasterCSV.new(csv_data, {:headers=>header, :encoding=>encoding, 
         :quote_char=>quote_char, :col_sep=>col_sep}).each do |row|
+
+      	# TODO: check that there is no missing data in each field.
 
 	      project = Project.find_by_name(row[attrs_map["project"]])
 	      tracker = Tracker.find_by_name(row[attrs_map["tracker"]])
@@ -325,60 +376,127 @@ private
     end
   end
   
-  def import_time_entries(csv_data, header, encoding, quote_char, col_sep) 
+  def import_time_entries(csv_data, header, encoding, quote_char, col_sep, params) 
     row_counter = 0
     failed_counter = 0
+
+    fields_map = params[:fields_map]
+
+    # attrs_map is fields_map's invert
+    attrs_map = fields_map.invert
+
+ 	# check params
+ 	errors = []
+
+	if attrs_map["issue_id"].nil? && attrs_map[@settings['csv_import_issue_id']].nil?
+		errors << l(:error_issue_field_not_defined )
+		errors << "<br>"
+	end
+
+    if attrs_map["user_id"].nil?
+    	errors << l(:error_user_field_not_defined)
+    	errors << "<br>"
+    end
+
+    if attrs_map["spent_on"].nil?
+    	errors << l(:error_spent_on_field_not_defined)
+    	errors << "<br>"
+    end
+
+    if attrs_map["activity_id"].nil? 
+    	errors << l(:error_activity_field_not_defined)
+    	errors << "<br>"
+    end
+
+    if attrs_map["hours"].nil? 
+    	errors << l(:error_hours_field_not_defined)
+    	errors << "<br>"
+    end
+
+    logger.info "Errors ##{errors.size}"
+    if errors.size > 0 
+    	logger.info "Errors : " + errors.to_s
+    	flash[:error] = errors
+    	return errors
+    end
+
+    # if update_issue && unique_attr == nil
+    #   flash[:error] = "Unique field hasn't match an issue's field"
+    #   return
+    # end
 
     begin
       ActiveRecord::Base.transaction do
 		FasterCSV.new(csv_data, {:headers=>header, :encoding=>encoding,
 		  :quote_char=>quote_char, :col_sep=>col_sep}).each do |row|
 
-##        FasterCSV.parse(csv_file) do |row|
-          if row[0].blank? ||
-              row[2].blank? ||
-              row[3].blank? ||
-              row[4].blank? ||
-              row[5].blank? ||
-			  row[6].blank?
+		  logger.info "Row processed :  #{row}"
+
+		  # Check that mandatory fields are not empty 
+          if (row[attrs_map["issue_id"]].blank? && row[attrs_map[@settings['csv_import_issue_id']]].blank?) ||
+              row[attrs_map["hours"]].blank? ||
+              row[attrs_map["activity_id"]].blank? ||
+              row[attrs_map["user_id"]].blank? ||
+              row[attrs_map["spent_on"]].blank? 
             
-##		            failed_counter += 1
 			@failed_count += 1
-	        @failed_events[@handle_count + 1] = row
+	        @failed_events[@handle_count] = row
+	        logger.info "failed_count ##{@failed_count}"
+	        logger.info "failed : #{row}"
+
+	        @handle_count += 1
             next
 
           end
 
-          custom_field = CustomField.find_by_name(CSV_IMPORT_ID)
-          custom_field_value = CustomValue.find(:first, :conditions => ["custom_field_id = ? and value = ?",  
-	          custom_field.id,row[0]])
+          logger.info "success : #{row}"
+		  project = Project.find_by_name(row[attrs_map["project"]])
 
-		  issue = Issue.find_by_id(custom_field_value.customized_id)
-		  
-          @time = TimeEntry.new(:issue_id => issue.id,
-                               :spent_on => row[2],
-                               :activity => TimeEntryActivity.find_by_name(row[3].strip),
-                               :hours => row[4])
+		  if row[attrs_map["issue_id"]].nil?
+	        # find issue from custom field
+	        custom_field = CustomField.find_by_name(@settings['csv_import_issue_id'])
+	        custom_field_value = CustomValue.find(:first, :conditions => ["custom_field_id = ? and value = ?",  
+		        custom_field.id,row[attrs_map[@settings['csv_import_issue_id']]]])
+
+			issue_id = Issue.find_by_id(custom_field_value.customized_id)
+			issue_id = issue_id.id
+		  else
+		  	issue_id = Issue.find_by_id(row[attrs_map["issue_id"]])
+		  	issue_id = issue_id.id
+		  end
+
+		  # new time entry
+          time = TimeEntry.new
+
+          time.project_id = project != nil ? project.id : @project.id
+          time.issue_id = issue_id
+          time.spent_on = row[attrs_map["spent_on"]]
+          time.activity = TimeEntryActivity.find_by_name(row[attrs_map["activity_id"]].strip)
+          time.hours = row[attrs_map["hours"]]
+          
           # Truncate comments to 255 chars
-          @time.comments = row[1].mb_chars[0..255].strip.to_s if row[1].present?
-          @time.user = User.find_by_login(row[5].strip)
-		  @time.gct_tpscra = row[6]
+          time.comments = row[attrs_map["comments"]].mb_chars[0..255].strip.to_s if row[attrs_map["comments"]].present?
+          time.user = User.find_by_login(row[attrs_map["user_id"]].strip)
+		  time.gct_tpscra = row[attrs_map["gct_tpscra"]] || 'A'
 		  
-          @time.save!
-##		         row_counter += 1
-		  @handle_count += 1
+          time.save!
+
+          @handle_count += 1
         end
       end
     rescue ActiveRecord::StatementInvalid, ActiveRecord::RecordNotSaved, ActiveRecord::RecordInvalid => ex
-      return "ERROR: #{ex.message} on:\n\n#{@time.inspect}"
+	  @error_event = { :message => ex.message, :row => @handle_count + 1 }
     end
 	
-##    failed_message = failed_counter == 0 ? '' : "#{failed_counter} records failed to import."
-##    return "Imported #{row_counter} records. #{failed_message}"
 	if @failed_events.size > 0
       @failed_events = @failed_events.sort
       @headers = @failed_events[0][1].headers
+      logger.info "Failed summary : #{@failed_events}"
+    end
+
+    if errors.size == 0
+    	return []
     end
   end
-  
+
 end
