@@ -21,7 +21,7 @@ fr:
   label_update_issue: "Mettre à jour la demande existante"
   label_journal_field: "Sélectionner le champ qui servira de journal :"
   label_unique_field: "Sélectioner le champ unique qui identifiera la demande :"
-  label_update_other_eproject: "Permettre la mise à jour des demandes d'autres projets"
+  label_update_other_project: "Permettre la mise à jour des demandes d'autres projets"
   label_ignore_non_exist: "Ignorer les demandes inexistantes"
   label_rule_name: "Nom de la règle en entrée"
   
@@ -43,6 +43,7 @@ fr:
   button_submit: "Valider"
   button_save_rules_and_submit: "Enregistrer les règles et envoyer"
 
+  error_subject_field_not_defined: "Aucun champ 'Sujet' n'est déini"
   error_issue_field_not_defined: "Aucun champ 'Demande' n'est défini"
   error_user_field_not_defined: "Aucun champ 'Utilisateur' n'est défini"
   error_spent_on_field_not_defined: "Aucun champ 'Date' n'est défini"
