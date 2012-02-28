@@ -42,7 +42,7 @@ en:
   button_submit: "Submit"
   button_save_rules_and_submit: "Save match rules and submit"
 
-
+  error_subject_field_not_defined: "'subject' field not defined"
   error_issue_field_not_defined: "'issue' field not defined"
   error_user_field_not_defined: "'user' field not defined"
   error_spent_on_field_not_defined: "'spent on' field not defined"
