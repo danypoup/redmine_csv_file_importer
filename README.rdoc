@@ -11,39 +11,41 @@ The database is used for intermediate storage.
 == Installation and Setup
 
 To install:
-    - Install fastercsv gem if not present by running 'gem install fastercsv'
-	- Download the plugin to your vendors/plugins directory
-	- Run 'rake db:migrate_plugins RAILS_ENV=production'
-	- Restart your redmine as appropriate
+- Install fastercsv gem if not present by running 'gem install fastercsv'
+- Download the plugin to your vendors/plugins directory
+- Run 'rake db:migrate_plugins RAILS_ENV=production'
+- Restart your redmine as appropriate
 
 To setup :
-	- Go to the Admin/Projects/../Modules
-	- Enable "CSV File Importer" 
-	- Set permissions according to your needs
-	- To import time entries, you need to define an issue customized field whose name must be "CSV-IMP-ID" and assign it to appropriates trackers. This customize field is used to bind issues with csv file.
+- Go to the Admin/Projects/../Modules
+- Enable "CSV File Importer" 
+- Set permissions according to your needs
+- To import time entries, you need to define an issue customized field whose name must be "CSV-IMP-ID" and assign it to appropriates trackers. This customize field is used to bind issues with csv file.
 
 == CSV file format
 
 * Lines :
-	- One header row.
-	- One or more data rows.
+- One header row.
+- One or more data rows.
 
 * Field separator : what you want !!
 
 * Field delimiter : what you want !!
 
 * Known encodings :
-	- UTF-8
-	- ISO8859-1
-	- ISO8859-15
-	- EUC
-	- SJIS
+- UTF-8
+- ISO8859-1
+- ISO8859-15
+- EUC
+- SJIS
 
 === For issues import
 
 User documentation for this part https://github.com/leovitch/redmine_importer/wiki.
 
 *Example*
+
+(_TODO_)
 
 === For time entries import
 
@@ -57,10 +59,10 @@ Following fields mut be present in this order (titles are only chosen for clarit
 
 *Example*
 
-	Id;Comment;Date;Activity;Hours;User
-	15;A simple test;2012-01-20;Test;3.5;John
-	16;Specifications writing;2012-01-20;Spec;4.75;Eric
-	17;Bug #324;2012-01-21;Support;3;John
+Id;Comment;Date;Activity;Hours;User
+15;A simple test;2012-01-20;Test;3.5;John
+16;Specifications writing;2012-01-20;Spec;4.75;Eric
+17;Bug #324;2012-01-21;Support;3;John
 
 == Localizations
 
