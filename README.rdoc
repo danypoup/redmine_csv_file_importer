@@ -24,17 +24,20 @@ To setup :
 
 == CSV file format
 
-* Lines :
-	* One header row.
-	* One or more data rows.
-* Field separator : what you want !!
-* Field delimiter : what you want !!
-* Known encodings :
-	* UTF-8
-	* ISO8859-1
-	* ISO8859-15
-	* EUC
-	* SJIS
+Lines :
+* One header row.
+* One or more data rows.
+
+Field separator : what you want !!
+
+Field delimiter : what you want !!
+
+Known encodings :
+* UTF-8
+* ISO8859-1
+* ISO8859-15
+* EUC
+* SJIS
 
 === For issues import
 
@@ -56,10 +59,11 @@ Following fields mut be present in this order (titles are only chosen for clarit
 
 *Example*
 
-	Id;Comment;Date;Activity;Hours;User
-	15;A simple test;2012-01-20;Test;3.5;John
-	16;Specifications writing;2012-01-20;Spec;4.75;Eric
-	17;Bug #324;2012-01-21;Support;3;John
+    Id;Comment;Date;Activity;Hours;User
+    15;A simple test;2012-01-20;Test;3.5;John
+    16;Specifications writing;2012-01-20;Spec;4.75;Eric
+    17;Bug #324;2012-01-21;Support;3;John
+
 
 == Localizations
 
@@ -74,6 +78,3 @@ This plugin is licensed under the GNU GPL v2. See COPYRIGHT.txt and GPL.txt for 
 This plugin was created by merging the Redmine Issue Importer plugin (https://github.com/leovitch/redmine_importer) and the Bulk Time Entry Plugin (https://github.com/edavis10/redmine-bulk_time_entry_plugin), plus some minor improvements.
 
 So, I'm very thankful to their creators : Leo Hourtvitz and Eric Davis.
-
-
-
