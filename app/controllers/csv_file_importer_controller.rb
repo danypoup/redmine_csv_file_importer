@@ -62,6 +62,7 @@ class CsvFileImporterController < ApplicationController
       @headers = @samples[0].headers
     end
     
+    logger.info "Import type : #{cfiip.import_type}"
 	case cfiip.import_type
 		when 'issue'
 			attributes = ISSUE_ATTRS
@@ -85,6 +86,7 @@ class CsvFileImporterController < ApplicationController
 	
     @attrs.sort!
 
+    logger.info "Render : match_#{render_template}"
 	render(:template => "csv_file_importer/match_" + render_template)
   end
 
@@ -196,9 +198,6 @@ private
 	# attrs_map is fields_map's invert
     attrs_map = fields_map.invert
 
-	# TODO: Check that following fields are bound to an issue table field 
-	# :subject, :priority, :project, :tracker, :author, :status
-	
     # check params
     errors = []
 
@@ -207,30 +206,10 @@ private
       errors << "<br>"
     end
     
-	# if attrs_map["id"].nil?
-	# 	errors << l(:error_id_field_not_defined )
-	# 	errors << "<br>"
-	# end
-
- #    if attrs_map["status"].nil?
- #    	errors << l(:error_user_field_not_defined)
- #    	errors << "<br>"
- #    end
-
-    if attrs_map["subject"].nil?
-    	errors << l(:error_spent_on_field_not_defined)
-    	errors << "<br>"
-    end
-
-    # if attrs_map["priority"].nil? 
-    # 	errors << l(:error_activity_field_not_defined)
-    # 	errors << "<br>"
-    # end
-
-    # if attrs_map["tracker"].nil? 
-    # 	errors << l(:error_hours_field_not_defined)
-    # 	errors << "<br>"
-    # end
+	if attrs_map["subject"].nil?
+		errors << l(:error_subject_field_not_defined )
+		errors << "<br>"
+	end
 
     if errors.size > 0
     	flash[:error] = errors
@@ -240,8 +219,6 @@ private
 	ActiveRecord::Base.transaction do
       FasterCSV.new(csv_data, {:headers=>header, :encoding=>encoding, 
         :quote_char=>quote_char, :col_sep=>col_sep}).each do |row|
-
-      	# TODO: check that there is no missing data in each field.
 
 	      project = Project.find_by_name(row[attrs_map["project"]])
 	      tracker = Tracker.find_by_name(row[attrs_map["tracker"]])

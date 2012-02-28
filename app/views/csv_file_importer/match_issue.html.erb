@@ -27,8 +27,9 @@
 	
 	<fieldset class="box"><legend><%= l(:label_import_rule) %></legend>
 		<label><%= l(:label_default_tracker) %>
+	
 		<%= select_tag "default_tracker", options_from_collection_for_select(@project.trackers, 'id', 'name') %></label><br/>
-		
+	<!--	
 		<label><%= check_box_tag "update_issue", true, false %> <%= l(:label_update_issue) %>
 		</label><br/>
 		<%= observe_field("update_issue", :function => <<END_OF_STRING
@@ -51,7 +52,7 @@ END_OF_STRING
 
 		&nbsp;&nbsp;&nbsp;&nbsp;<label><%= check_box_tag "ignore_non_exist", true, false, {:disabled => true} %>
 		<%= l(:label_ignore_non_exist) %></label><br/>
-				
+	-->			
 	</fieldset>
 
 	<%= submit_tag l(:button_submit) %>
