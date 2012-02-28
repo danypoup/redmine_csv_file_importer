@@ -4,7 +4,7 @@ Redmine::Plugin.register :redmine_csv_file_importer do
   name 'CSV File Importer'
   author 'Dany Poupard'
   description 'CSV file import plugin for Redmine.'
-  version '1.0'
+  version '1.0.0'
 
   requires_redmine :version_or_higher => '0.9.0'
   
