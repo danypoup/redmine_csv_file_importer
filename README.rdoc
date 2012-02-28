@@ -24,20 +24,20 @@ To setup :
 
 == CSV file format
 
-* Lines :
-- One header row.
-- One or more data rows.
+- Lines :
+	- One header row.
+	- One or more data rows.
 
-* Field separator : what you want !!
+- Field separator : what you want !!
 
-* Field delimiter : what you want !!
+- Field delimiter : what you want !!
 
-* Known encodings :
-- UTF-8
-- ISO8859-1
-- ISO8859-15
-- EUC
-- SJIS
+- Known encodings :
+	- UTF-8
+	- ISO8859-1
+	- ISO8859-15
+	- EUC
+	- SJIS
 
 === For issues import
 
@@ -59,10 +59,10 @@ Following fields mut be present in this order (titles are only chosen for clarit
 
 *Example*
 
-Id;Comment;Date;Activity;Hours;User
-15;A simple test;2012-01-20;Test;3.5;John
-16;Specifications writing;2012-01-20;Spec;4.75;Eric
-17;Bug #324;2012-01-21;Support;3;John
+	Id;Comment;Date;Activity;Hours;User
+	15;A simple test;2012-01-20;Test;3.5;John
+	16;Specifications writing;2012-01-20;Spec;4.75;Eric
+	17;Bug #324;2012-01-21;Support;3;John
 
 == Localizations
 
