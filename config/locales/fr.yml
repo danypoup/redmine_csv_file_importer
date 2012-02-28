@@ -1,5 +1,7 @@
 fr:
   label_import: "Import"
+  label_issue: "Demande"
+  label_time_entry: "Temps passé"
   label_csv_file_importer: "Import fichiers CSV"
   label_issue_importer: "Import de demandes"
   label_time_entry_importer: "Import de temps passé"
@@ -10,27 +12,45 @@ fr:
   label_upload_splitter: "Séparateur de champ :"
   label_upload_wrapper: "Délimiteur de champ :"
   
-  label_load_rules: "Load saved rules"
-  label_toplines: "Refer to top lines of {{value}}"
-  label_match_columns: "Matching Columns"
-  label_match_select: "Select match field"
-  label_import_rule: "Import rules"
-  label_default_tracker: "Default tracker:"
-  label_update_issue: "Update exists issue"
-  label_journal_field: "Select field as journal:"
-  label_unique_field: "Select unique field for identify issue:"
-  label_update_other_project: "Allow update issues of other projects"
-  label_ignore_non_exist: "Ignore none exist issues"
-  label_rule_name: "Input rule name"
+  label_load_rules: "Charger les règles enregistrées"
+  label_toplines: "Montre les premières lignes du fichier {{value}}"
+  label_match_columns: "Mise en correspondance des colonnes"
+  label_match_select: "Sélectionner le champ correspondant"
+  label_import_rule: "Importer les règles"
+  label_default_tracker: "Marqueur par défaut :"
+  label_update_issue: "Mettre à jour la demande existante"
+  label_journal_field: "Sélectionner le champ qui servira de journal :"
+  label_unique_field: "Sélectioner le champ unique qui identifiera la demande :"
+  label_update_other_eproject: "Permettre la mise à jour des demandes d'autres projets"
+  label_ignore_non_exist: "Ignorer les demandes inexistantes"
+  label_rule_name: "Nom de la règle en entrée"
   
-  label_import_result: "Import Result"
+  label_import_result: "Résultat de l'import"
   label_result_notice: "{{handle_count}} lignes traitées.  {{success_count}} lignes importées avec succès."
-  label_result_projects: "Affected projects:"
+  label_result_projects: "Projets concernés :"
   label_result_issues: "{{count}} demandes"
-  label_result_failed: "{{count}} lignes en échec:"
-  
+  label_result_failed: "{{count}} ligne(s) en échec :"
+  label_result_error: "Erreur : {{message}}  / Ligne : {{row}}"
+
+  label_csv_file_importer_settings: ""
+  label_csv_import_issue_id: "Identifiant des demandes"
+
+  message_csv_import_issue_id: "Choisissez le champ personnalisé qui contiendra l'identifiant des demandes importées"
+
   option_ignore: "Ignorer"
   
   button_upload: "Envoyer le fichier"
   button_submit: "Valider"
-  button_save_rules_and_submit: "Save match rules and submit"
+  button_save_rules_and_submit: "Enregistrer les règles et envoyer"
+
+  error_issue_field_not_defined: "Aucun champ 'Demande' n'est défini"
+  error_user_field_not_defined: "Aucun champ 'Utilisateur' n'est défini"
+  error_spent_on_field_not_defined: "Aucun champ 'Date' n'est défini"
+  error_activity_field_not_defined: "Aucun champ 'Activité' n'est défini"
+  error_hours_field_not_defined: "Aucun champ 'Heures' n'est défini"
+
+  activerecord:
+    errors:
+      messages:
+        record_invalid: "Ligne invalide"
+
