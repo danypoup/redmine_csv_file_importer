@@ -95,8 +95,8 @@ class CsvFileImporterController < ApplicationController
     @update_count = 0
     @skip_count = 0
     @failed_count = 0
-    @error_event = []
     @failed_events = Hash.new
+    @failed_messages = Hash.new
     @affect_projects_issues = Hash.new
     
     # Retrieve saved import data
@@ -220,6 +220,9 @@ private
       FasterCSV.new(csv_data, {:headers=>header, :encoding=>encoding, 
         :quote_char=>quote_char, :col_sep=>col_sep}).each do |row|
 
+      	  @handle_count += 1
+
+      	  id = row[attrs_map["id"]]
 	      project = Project.find_by_name(row[attrs_map["project"]])
 	      tracker = Tracker.find_by_name(row[attrs_map["tracker"]])
 	      status = IssueStatus.find_by_name(row[attrs_map["status"]]) 
@@ -228,9 +231,12 @@ private
 	      category = IssueCategory.find_by_name(row[attrs_map["category"]])
 	      assigned_to = User.find_by_login(row[attrs_map["assigned_to"]])
 	      fixed_version = Version.find_by_name(row[attrs_map["fixed_version"]])
+	      
+	      journal = nil
+
 	      # new issue or find exists one
 	      issue = Issue.new
-	      journal = nil
+	      issue.id = id !=  nil ? id : issue.id
 	      issue.project_id = project != nil ? project.id : @project.id
 	      issue.tracker_id = tracker != nil ? tracker.id : default_tracker
 	      issue.author_id = author != nil ? author.id : User.current.id
@@ -261,7 +267,8 @@ private
 	        if issues.size > 1
 	          flash[:warning] = "Unique field #{unique_field} has duplicate record"
 	          @failed_count += 1
-	          @failed_events[@handle_count + 1] = row
+	          @failed_events[@failed_count] = row
+	          @failed_messages[@failed_count] = "Unique field #{unique_field} has duplicate record"
 	          break
 	        else
 	          if issues.size > 0
@@ -310,6 +317,18 @@ private
 	      issue.priority_id = priority != nil ? priority.id : issue.priority_id
 	      issue.subject = row[attrs_map["subject"]] || issue.subject
 	      
+	      # Check that mandatory fields are not empty 
+          if issue.subject.nil? || issue.subject.blank?             
+			@failed_count += 1
+	        @failed_events[@failed_count] = row
+	        @failed_messages[@failed_count] = l(:error_mandatory_field_missing)
+
+	        logger.info "failed_count ##{@failed_count}"
+	        logger.info "failed : #{row}"
+
+            next
+          end
+
 	      # optional attributes
 	      issue.description = row[attrs_map["description"]] || issue.description
 	      issue.category_id = category != nil ? category.id : issue.category_id
@@ -328,22 +347,21 @@ private
 	        h
 	      end
 		  
-	      if (!issue.save)
-	        # 记录错误
-			
-			# Log errors on issue saving
-			logger.info "Issue not saved !"
-			issue.errors.each_full { |msg| logger.info msg }
-
-	        @failed_count += 1
-	        @failed_events[@handle_count + 1] = row
+  		  begin
+	        issue.save!
+	      rescue ActiveRecord::StatementInvalid, ActiveRecord::RecordNotSaved, ActiveRecord::RecordInvalid => ex
+		    @failed_count += 1
+		    @failed_events[@failed_count] = row
+		    @failed_messages[@failed_count] = l(:error_issue_not_saved) + " (#{ex.message[0..49]}...)"
+		    logger.info "failed_count ##{@failed_count}"
+		    logger.info "failed : #{row}"
+		    logger.info "failed error : #{ex}"
+		    next
 	      end
   
 	      if journal
 	        journal
 	      end
-	      
-	      @handle_count += 1
 		end # do
     end # do
 	
@@ -406,11 +424,12 @@ private
     #   return
     # end
 
-    begin
-      ActiveRecord::Base.transaction do
+    
+    ActiveRecord::Base.transaction do
 		FasterCSV.new(csv_data, {:headers=>header, :encoding=>encoding,
 		  :quote_char=>quote_char, :col_sep=>col_sep}).each do |row|
 
+		  @handle_count += 1
 		  logger.info "Row processed :  #{row}"
 
 		  # Check that mandatory fields are not empty 
@@ -421,11 +440,11 @@ private
               row[attrs_map["spent_on"]].blank? 
             
 			@failed_count += 1
-	        @failed_events[@handle_count] = row
+	        @failed_events[@failed_count] = row
+	        @failed_messages[@failed_count] = l(:error_mandatory_field_missing)
 	        logger.info "failed_count ##{@failed_count}"
 	        logger.info "failed : #{row}"
 
-	        @handle_count += 1
             next
 
           end
@@ -433,17 +452,29 @@ private
           logger.info "success : #{row}"
 		  project = Project.find_by_name(row[attrs_map["project"]])
 
-		  if row[attrs_map["issue_id"]].nil?
-	        # find issue from custom field
-	        custom_field = CustomField.find_by_name(@settings['csv_import_issue_id'])
-	        custom_field_value = CustomValue.find(:first, :conditions => ["custom_field_id = ? and value = ?",  
-		        custom_field.id,row[attrs_map[@settings['csv_import_issue_id']]]])
+		  logger.info "project : #{project}"
 
-			issue_id = Issue.find_by_id(custom_field_value.customized_id)
-			issue_id = issue_id.id
-		  else
-		  	issue_id = Issue.find_by_id(row[attrs_map["issue_id"]])
-		  	issue_id = issue_id.id
+		  begin
+			  if row[attrs_map["issue_id"]].nil?
+		        # find issue from custom field
+		        custom_field = CustomField.find_by_name(@settings['csv_import_issue_id'])
+		        custom_field_value = CustomValue.find(:first, :conditions => ["custom_field_id = ? and value = ?",  
+			        custom_field.id,row[attrs_map[@settings['csv_import_issue_id']]]])
+
+				issue_id = Issue.find_by_id(custom_field_value.customized_id)
+				issue_id = issue_id.id
+			  else
+			  	issue_id = Issue.find_by_id(row[attrs_map["issue_id"]])
+			  	issue_id = issue_id.id
+			  end
+		  rescue NilClass::NoMethodError => ex
+			@failed_count += 1
+			@failed_events[@failed_count] = row
+			@failed_messages[@failed_count] = l(:error_issue_id_not_existing) + " (#{ex.message[0..49]}...)"
+			logger.info "failed_count ##{@failed_count}"
+			logger.info "failed : #{row}"
+			logger.info "failed error : #{ex}"
+			next
 		  end
 
 		  # new time entry
@@ -459,14 +490,27 @@ private
           time.comments = row[attrs_map["comments"]].mb_chars[0..255].strip.to_s if row[attrs_map["comments"]].present?
           time.user = User.find_by_login(row[attrs_map["user_id"]].strip)
 		  
-          time.save!
+		  # Just for log
+		  t_s = ""
+		  time.attributes.sort.each do | a_n, a_v |
+		  	t_s += "#{a_n} : #{a_v} | "
+		  end
 
-          @handle_count += 1
-        end
-      end
-    rescue ActiveRecord::StatementInvalid, ActiveRecord::RecordNotSaved, ActiveRecord::RecordInvalid => ex
-	  @error_event = { :message => ex.message, :row => @handle_count + 1 }
-    end
+		  logger.info "TimeEntry : #{t_s}"
+
+		  begin
+	        time.save!
+	      rescue ActiveRecord::StatementInvalid, ActiveRecord::RecordNotSaved, ActiveRecord::RecordInvalid => ex
+		    @failed_count += 1
+		    @failed_events[@failed_count] = row
+		    @failed_messages[@failed_count] = l(:error_time_entry_not_saved) + " (#{ex.message[0..49]}...)"
+		    logger.info "failed_count ##{@failed_count}"
+		    logger.info "failed : #{row}"
+		    logger.info "failed error : #{ex}"
+		    next
+	      end
+	    end
+	end
 	
 	if @failed_events.size > 0
       @failed_events = @failed_events.sort

@@ -31,6 +31,7 @@ fr:
   label_result_issues: "{{count}} demandes"
   label_result_failed: "{{count}} ligne(s) en échec :"
   label_result_error: "Erreur : {{message}}  / Ligne : {{row}}"
+  label_error_message: "Message d'erreur"
 
   label_csv_file_importer_settings: ""
   label_csv_import_issue_id: "Identifiant des demandes"
@@ -49,9 +50,9 @@ fr:
   error_spent_on_field_not_defined: "Aucun champ 'Date' n'est défini"
   error_activity_field_not_defined: "Aucun champ 'Activité' n'est défini"
   error_hours_field_not_defined: "Aucun champ 'Heures' n'est défini"
-
-  activerecord:
-    errors:
-      messages:
-        record_invalid: "Ligne invalide"
+  error_mandatory_field_missing: "Champ obligatoire absent"
+  error_issue_id_not_existing: "Identifiant de demande inexistant"
+  error_issue_not_saved: "Demande non enregistrée"
+  error_time_entry_not_saved: "Temps passé non enregistré"
+  error_duplicate_unique_field: "Le champ unique {{unique_field}} a des doublons"
 

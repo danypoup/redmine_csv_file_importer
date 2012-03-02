@@ -3,17 +3,10 @@
 <% end %>
 
 <h2><%= l(:label_time_entry_importer) %></h2>
+
 <p>
 	<%= l(:label_result_notice, :handle_count => @handle_count, :success_count => (@handle_count - @failed_count)) %>
 </p>
-
-<hr/>
-
-<% if @error_event.size > 0 %>
-	<p>
-		<%= l(:label_result_error, :message => @error_event[:message], :row => @error_event[:row]) %>
-	</p>
-<% end %>
 
 <hr/>
 
@@ -25,12 +18,14 @@
 	        <% @headers.each do |column| %>
 	          <th><%= column %></th>
 	        <% end %>
+	        <th><%= l(:label_error_message) %></th>
 		</tr></thead>
 		<tbody>
 		<% @failed_events.each do |id, event| -%>
 		<tr class="<%= cycle("odd", "even") %>">
 			<td><%= id %></td>
 		    <% event.each do |column| %><%= content_tag 'td', column[1] %><% end %>
+		    <td><%= @failed_messages[id] %></td>
 		</tr>
 		<% end %>
 		</tbody>

@@ -28,7 +28,7 @@
 	<fieldset class="box"><legend><%= l(:label_import_rule) %></legend>
 		<label><%= l(:label_default_tracker) %>
 	
-		<%= select_tag "default_tracker", options_from_collection_for_select(@project.trackers, 'id', 'name') %></label><br/>
+		<%= select_tag "default_tracker", options_from_collection_for_select(@project.trackers.sort, 'id', 'name') %></label><br/>
 	<!--	
 		<label><%= check_box_tag "update_issue", true, false %> <%= l(:label_update_issue) %>
 		</label><br/>
