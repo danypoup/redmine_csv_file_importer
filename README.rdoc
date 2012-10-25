@@ -5,7 +5,7 @@ The database is used for intermediate storage.
 
 == Requirements
 
-* Redmine 1.0.0
+* Redmine 1.3.X, 1.4.X
 * Fastercsv gem (1.5.3 and 1.5.4 tested)
 
 == Installation and Setup
@@ -67,7 +67,7 @@ Following fields mut be present in this order (titles are only chosen for clarit
 
 == Localizations
 
-en, fr localizations included.
+en, fr, zh localizations included.
 
 == Licence
 
